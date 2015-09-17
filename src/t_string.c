@@ -173,6 +173,22 @@ void getCommand(client *c) {
     getGenericCommand(c);
 }
 
+void getexCommand(client *c) {
+    long long milliseconds = 0;
+
+    if (c->argc == 3) {
+        robj *val = c->argv[2];
+        if (getLongLongFromObjectOrReply(c, val, &milliseconds, NULL) != C_OK) {
+            return;
+        }
+    }
+
+    milliseconds *= 1000;
+    if (getGenericCommand(c) == C_OK && lookupKeyRead(c->db, c->argv[1]) != NULL) {
+        setExpire(c->db, c->argv[1], mstime() + milliseconds);
+    }
+}
+
 void getsetCommand(client *c) {
     if (getGenericCommand(c) == C_ERR) return;
     c->argv[2] = tryObjectEncoding(c->argv[2]);
